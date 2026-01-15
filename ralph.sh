@@ -139,38 +139,40 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
 
-    # Create a temporary file to capture output
+    # Create temporary files
     OUTPUT_FILE=$(mktemp)
+    PROMPT_FILE=$(mktemp)
 
     # Run Claude Code with the prompt
     # Each iteration spawns a NEW conversation (fresh context window)
     # Memory persists through: git, progress.txt, prd.json
     #
-    # The -p flag runs Claude with a prompt in non-interactive mode
-    PROMPT_CONTENT=$(cat "$SCRIPT_DIR/prompt.md")
+    # Write prompt to temp file to avoid shell escaping issues
+    cat "$SCRIPT_DIR/prompt.md" > "$PROMPT_FILE"
 
     # Build command based on mode
+    # Use --print-only to get just the response, pipe prompt from file
     if [ "$AUTO_MODE" = true ]; then
-        CLAUDE_CMD="claude -p \"$PROMPT_CONTENT\" --dangerously-skip-permissions"
+        CLAUDE_ARGS="--dangerously-skip-permissions"
     else
-        CLAUDE_CMD="claude -p \"$PROMPT_CONTENT\""
+        CLAUDE_ARGS=""
     fi
 
-    if eval "$CLAUDE_CMD" 2>&1 | tee "$OUTPUT_FILE"; then
+    if cat "$PROMPT_FILE" | claude -p - $CLAUDE_ARGS 2>&1 | tee "$OUTPUT_FILE"; then
         # Check for completion signal
         if grep -q "<promise>COMPLETE</promise>" "$OUTPUT_FILE"; then
             echo ""
             echo -e "${GREEN}╔═══════════════════════════════════════════════════════════╗${NC}"
             echo -e "${GREEN}║${NC}                    ${GREEN}ALL STORIES COMPLETE!${NC}                  ${GREEN}║${NC}"
             echo -e "${GREEN}╚═══════════════════════════════════════════════════════════╝${NC}"
-            rm "$OUTPUT_FILE"
+            rm -f "$OUTPUT_FILE" "$PROMPT_FILE"
             exit 0
         fi
     else
         echo -e "${YELLOW}Warning: Claude Code exited with non-zero status${NC}"
     fi
 
-    rm "$OUTPUT_FILE"
+    rm -f "$OUTPUT_FILE" "$PROMPT_FILE"
 
     # Brief pause between iterations
     if [ $i -lt $MAX_ITERATIONS ]; then
