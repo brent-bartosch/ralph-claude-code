@@ -49,6 +49,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}╔═══════════════════════════════════════════════════════════╗${NC}"
@@ -122,6 +123,38 @@ count_stories() {
     echo "$completed/$total"
 }
 
+# Count blocked stories
+count_blocked() {
+    jq '[.userStories[] | select(.blocked == true)] | length' "$PRD_FILE"
+}
+
+# Count remaining (incomplete and not blocked)
+count_remaining() {
+    jq '[.userStories[] | select(.passes == false and (.blocked == false or .blocked == null))] | length' "$PRD_FILE"
+}
+
+# Show detailed status
+show_status() {
+    local total=$(jq '.userStories | length' "$PRD_FILE")
+    local completed=$(jq '[.userStories[] | select(.passes == true)] | length' "$PRD_FILE")
+    local blocked=$(count_blocked)
+    local remaining=$(count_remaining)
+
+    echo -e "Stories: ${GREEN}$completed${NC}/${total} complete"
+    if [ "$blocked" -gt 0 ]; then
+        echo -e "         ${MAGENTA}$blocked blocked${NC} (need human review)"
+    fi
+    if [ "$remaining" -gt 0 ]; then
+        echo -e "         ${YELLOW}$remaining remaining${NC}"
+    fi
+}
+
+# List blocked stories
+list_blocked_stories() {
+    echo -e "${MAGENTA}Blocked Stories:${NC}"
+    jq -r '.userStories[] | select(.blocked == true) | "  - \(.id): \(.title)\n    Reason: \(.blockedReason // "See progress.txt")"' "$PRD_FILE"
+}
+
 # Main loop
 echo -e "${BLUE}Starting Ralph loop with max $MAX_ITERATIONS iterations${NC}"
 if [ "$AUTO_MODE" = true ]; then
@@ -129,13 +162,13 @@ if [ "$AUTO_MODE" = true ]; then
 else
     echo -e "Mode: Interactive (will prompt for permissions)"
 fi
-echo -e "Progress: $(count_stories) stories complete"
+show_status
 echo ""
 
 for ((i=1; i<=MAX_ITERATIONS; i++)); do
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${GREEN}Iteration $i of $MAX_ITERATIONS${NC} - $(date '+%H:%M:%S')"
-    echo -e "Stories: $(count_stories)"
+    show_status
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
 
@@ -168,6 +201,31 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
             rm -f "$OUTPUT_FILE" "$PROMPT_FILE"
             exit 0
         fi
+
+        # Check for blocked signal - some stories are blocked, but work may continue
+        if grep -q "<promise>BLOCKED" "$OUTPUT_FILE"; then
+            BLOCKED_COUNT=$(count_blocked)
+            REMAINING=$(count_remaining)
+
+            echo ""
+            echo -e "${MAGENTA}╔═══════════════════════════════════════════════════════════╗${NC}"
+            echo -e "${MAGENTA}║${NC}              ${MAGENTA}BLOCKED - Human Review Needed${NC}              ${MAGENTA}║${NC}"
+            echo -e "${MAGENTA}╚═══════════════════════════════════════════════════════════╝${NC}"
+            echo ""
+            list_blocked_stories
+            echo ""
+            echo -e "Check ${YELLOW}$PROGRESS_FILE${NC} for detailed blocking information."
+            echo ""
+
+            if [ "$REMAINING" -eq 0 ]; then
+                echo -e "${YELLOW}All remaining stories are blocked. Cannot continue.${NC}"
+                rm -f "$OUTPUT_FILE" "$PROMPT_FILE"
+                exit 2
+            else
+                echo -e "${GREEN}$REMAINING stories still available to work on.${NC}"
+                echo "Continuing with next iteration..."
+            fi
+        fi
     else
         echo -e "${YELLOW}Warning: Claude Code exited with non-zero status${NC}"
     fi
@@ -187,6 +245,14 @@ echo -e "${YELLOW}╔═══════════════════�
 echo -e "${YELLOW}║${NC}         Max iterations reached without completion         ${YELLOW}║${NC}"
 echo -e "${YELLOW}╚═══════════════════════════════════════════════════════════╝${NC}"
 echo ""
-echo "Final progress: $(count_stories)"
+show_status
+
+BLOCKED_COUNT=$(count_blocked)
+if [ "$BLOCKED_COUNT" -gt 0 ]; then
+    echo ""
+    list_blocked_stories
+fi
+
+echo ""
 echo "Check $PROGRESS_FILE for details."
 exit 1

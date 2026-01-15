@@ -80,9 +80,31 @@ Stories must be **small enough to complete in one iteration**:
 | Auto mode | `--dangerously-allow-all` | `--auto` flag (uses `--dangerously-skip-permissions`) |
 | Skills | `skills/*/SKILL.md` | Same format, works with Claude Code |
 
+## Testing and Quality Framework
+
+Ralph includes a comprehensive testing and validation framework to prevent AI failure modes. Key features:
+
+- **Story-level tests**: Add `tests` array to stories for executable validation
+- **Skip & Document pattern**: After 2-3 failures, Ralph blocks the story with documentation instead of degrading the solution
+- **Blocked story tracking**: Stories can be marked `blocked: true` for human review
+
+See **[Testing and Limitations Documentation](docs/TESTING_AND_LIMITATIONS.md)** for the complete framework.
+
+### Handling Blocked Stories
+
+```bash
+# Check for blocked stories
+jq '[.userStories[] | select(.blocked == true)] | .[] | {id, title, blockedReason}' ralph/prd.json
+
+# Unblock after resolving the issue
+jq '(.userStories[] | select(.id == "US-XXX") | .blocked) = false' ralph/prd.json > tmp.json && mv tmp.json ralph/prd.json
+```
+
 ## Tips
 
 1. **Start small** - Begin with a 3-5 story PRD to test the workflow
 2. **Check progress.txt** - This is Ralph's memory
 3. **Keep stories atomic** - One focused change per story
 4. **Don't skip quality checks** - Broken code compounds
+5. **Review blocked stories promptly** - Don't let them accumulate
+6. **Add executable tests** - Use the `tests` array in prd.json

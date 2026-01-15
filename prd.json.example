@@ -14,7 +14,13 @@
         "Create migration file",
         "Typecheck passes"
       ],
+      "tests": [
+        "npm run typecheck",
+        "npm run lint"
+      ],
       "passes": false,
+      "blocked": false,
+      "blockedReason": "",
       "notes": ""
     },
     {
@@ -29,7 +35,13 @@
         "Unit tests pass",
         "Typecheck passes"
       ],
+      "tests": [
+        "npm run typecheck",
+        "npm test -- --grep 'tasks API'"
+      ],
       "passes": false,
+      "blocked": false,
+      "blockedReason": "",
       "notes": ""
     },
     {
@@ -44,12 +56,18 @@
         "Typecheck passes",
         "Verify in browser"
       ],
+      "tests": [
+        "npm run typecheck",
+        "npm test -- --grep 'StatusBadge'"
+      ],
       "passes": false,
+      "blocked": false,
+      "blockedReason": "",
       "notes": ""
     },
     {
       "id": "US-004",
-      "title": "Status Filter Dropdown",
+      "title": "Status Filter Dropdown - EXAMPLE BLOCKED STORY",
       "priority": 4,
       "description": "As a user, I want to filter tasks by status.",
       "acceptanceCriteria": [
@@ -60,8 +78,13 @@
         "Typecheck passes",
         "Verify in browser"
       ],
+      "tests": [
+        "npm run typecheck"
+      ],
       "passes": false,
-      "notes": ""
+      "blocked": true,
+      "blockedReason": "Unclear whether filter should use client-side filtering or make new API call. See progress.txt for details.",
+      "notes": "Blocked during iteration 3. Human needs to decide on filtering approach."
     }
   ]
 }
