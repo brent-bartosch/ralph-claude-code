@@ -1,0 +1,15 @@
+# Project-specific state files (these stay in parent project, not the submodule)
+prd.json
+progress.txt
+.last-branch
+
+# Archive of previous runs (contains project-specific data)
+archive/
+
+# OS files
+.DS_Store
+
+# Editor files
+*.swp
+*.swo
+*~

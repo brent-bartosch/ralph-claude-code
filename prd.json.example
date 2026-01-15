@@ -1,0 +1,67 @@
+{
+  "project": "My Feature Name",
+  "branchName": "ralph/my-feature-name",
+  "description": "Brief description of what this feature does and why it's needed.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Database Schema Changes",
+      "priority": 1,
+      "description": "As a developer, I need the database schema updated to support the new feature.",
+      "acceptanceCriteria": [
+        "Add `status` column to `tasks` table with type VARCHAR(20)",
+        "Default value is 'pending'",
+        "Create migration file",
+        "Typecheck passes"
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Backend API Endpoint",
+      "priority": 2,
+      "description": "As a frontend developer, I need an API endpoint to fetch task statuses.",
+      "acceptanceCriteria": [
+        "GET /api/tasks returns list with status field",
+        "POST /api/tasks/:id/status updates status",
+        "Returns 400 for invalid status values",
+        "Unit tests pass",
+        "Typecheck passes"
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Status Badge Component",
+      "priority": 3,
+      "description": "As a user, I want to see a visual status badge on each task.",
+      "acceptanceCriteria": [
+        "StatusBadge component renders colored badge",
+        "pending = yellow, complete = green, failed = red",
+        "Badge shows status text",
+        "Typecheck passes",
+        "Verify in browser"
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Status Filter Dropdown",
+      "priority": 4,
+      "description": "As a user, I want to filter tasks by status.",
+      "acceptanceCriteria": [
+        "Dropdown with options: All, Pending, Complete, Failed",
+        "Selecting filter updates task list",
+        "Filter persists in URL query param",
+        "Empty state shows 'No tasks match filter'",
+        "Typecheck passes",
+        "Verify in browser"
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
