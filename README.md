@@ -2,7 +2,39 @@
 
 Autonomous AI agent loop adapted from [snarktank/ralph](https://github.com/snarktank/ralph) for Claude Code CLI.
 
+Integrates with [GSD (Get Shit Done)](https://github.com/glittercowboy/get-shit-done) for comprehensive spec-driven development.
+
 ## Quick Start
+
+### Option A: With GSD Planning (Recommended for new projects)
+
+```bash
+# 1. Install GSD
+npx get-shit-done-cc --local
+
+# 2. Create project spec
+/gsd:new-project
+
+# 3. Define requirements
+/gsd:define-requirements
+
+# 4. Create roadmap
+/gsd:create-roadmap
+
+# 5. Plan first phase
+/gsd:plan-phase 1
+
+# 6. Convert to Ralph format
+python ralph/skills/gsd-to-ralph/convert.py 1
+
+# 7. Run autonomous implementation
+./ralph/ralph.sh --auto
+
+# 8. Monitor progress
+tail -f ralph/progress.txt
+```
+
+### Option B: Direct PRD (Quick tasks)
 
 ```bash
 # 1. Create a PRD (in Claude Code conversation)
@@ -36,6 +68,9 @@ Ralph spawns fresh Claude Code instances in a loop, each working on ONE user sto
 | `progress.txt` | Memory across iterations |
 | `skills/prd/` | PRD generator skill |
 | `skills/ralph/` | PRD converter skill |
+| `skills/gsd-to-ralph/` | GSD plan → Ralph prd.json converter |
+| `.claude/` | GSD installation (commands, workflows, agents) |
+| `docs/` | Testing framework documentation |
 
 ## Usage
 
@@ -72,6 +107,59 @@ Stories must be **small enough to complete in one iteration**:
 - Implement authentication
 - Create data pipeline
 
+## GSD + Ralph Integration
+
+The integration combines GSD's planning strengths with Ralph's execution reliability:
+
+| Aspect | GSD Handles | Ralph Handles |
+|--------|-------------|---------------|
+| **Planning** | Project definition, requirements, roadmaps | - |
+| **Task Design** | Phase breakdown, task specifications | - |
+| **Execution** | - | Autonomous implementation loop |
+| **Failure Handling** | - | Skip & Document pattern |
+| **Memory** | PROJECT.md, ROADMAP.md, STATE.md | progress.txt, git history |
+
+### Workflow
+
+```
+GSD Planning                    Ralph Execution
+─────────────                   ───────────────
+/gsd:new-project      →
+/gsd:define-requirements →
+/gsd:create-roadmap   →
+/gsd:plan-phase N     →    convert.py    →    ./ralph.sh --auto
+                            ↓                       ↓
+                       prd.json              Fresh Claude sessions
+                                                    ↓
+                                             Completed stories
+                                                    ↓
+                                             Blocked items → Human review
+```
+
+### When to Use Each
+
+**Use GSD Planning when:**
+- Starting a new project from scratch
+- Building complex multi-phase features
+- You want thorough upfront specification
+- Working on brownfield codebases (use `/gsd:map-codebase` first)
+
+**Use Direct PRD when:**
+- Quick bug fixes or small features
+- You already know exactly what to build
+- Adding to an existing Ralph project
+
+### GSD Commands Reference
+
+| Command | Purpose |
+|---------|---------|
+| `/gsd:new-project` | Initialize project with deep discovery |
+| `/gsd:map-codebase` | Analyze existing code (brownfield) |
+| `/gsd:define-requirements` | Specify v1, v2, out-of-scope |
+| `/gsd:create-roadmap` | Generate phased implementation plan |
+| `/gsd:plan-phase N` | Create atomic task plans for phase N |
+| `/gsd:help` | Show all available commands |
+
 ## Differences from Original Ralph
 
 | Feature | Original (Amp) | This Version (Claude Code) |
@@ -79,6 +167,7 @@ Stories must be **small enough to complete in one iteration**:
 | CLI | `amp` | `claude` |
 | Auto mode | `--dangerously-allow-all` | `--auto` flag (uses `--dangerously-skip-permissions`) |
 | Skills | `skills/*/SKILL.md` | Same format, works with Claude Code |
+| Planning | Manual PRD | GSD integration for spec-driven development |
 
 ## Testing and Quality Framework
 
