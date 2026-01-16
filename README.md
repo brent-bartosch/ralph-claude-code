@@ -9,28 +9,25 @@ Integrates with [GSD (Get Shit Done)](https://github.com/glittercowboy/get-shit-
 ### Option A: With GSD Planning (Recommended for new projects)
 
 ```bash
-# 1. Install GSD
-npx get-shit-done-cc --local
-
-# 2. Create project spec
+# 1. Create project spec (GSD is bundled with Ralph)
 /gsd:new-project
 
-# 3. Define requirements
+# 2. Define requirements
 /gsd:define-requirements
 
-# 4. Create roadmap
+# 3. Create roadmap
 /gsd:create-roadmap
 
-# 5. Plan first phase
+# 4. Plan first phase
 /gsd:plan-phase 1
 
-# 6. Convert to Ralph format
+# 5. Convert to Ralph format
 python ralph/skills/gsd-to-ralph/convert.py 1
 
-# 7. Run autonomous implementation
+# 6. Run autonomous implementation
 ./ralph/ralph.sh --auto
 
-# 8. Monitor progress
+# 7. Monitor progress
 tail -f ralph/progress.txt
 ```
 

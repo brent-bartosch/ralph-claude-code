@@ -6,9 +6,6 @@ progress.txt
 # Archive of previous runs (contains project-specific data)
 archive/
 
-# GSD installation (install per-project via: npx get-shit-done-cc --local)
-.claude/
-
 # Planning directory (created by GSD, project-specific)
 .planning/
 
